@@ -1,0 +1,79 @@
+/* style.css */
+.root {
+    -fx-font-family: 'Arial';
+    -fx-base: #ffffff;
+}
+
+.list-view {
+    -fx-border-color: #333;
+    -fx-border-width: 2px;
+    -fx-padding: 10px;
+    -fx-background-color: #f7f7f7;
+}
+
+.button {
+    -fx-background-color: #5cb85c;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 10px 20px;
+}
+
+.button:hover {
+    -fx-background-color: #4cae4c;
+}
+
+.text-field {
+    -fx-padding: 10px;
+    -fx-font-size: 14px;
+}
+
+.text {
+    -fx-fill: #333;
+    -fx-font-size: 16px;
+}
+/* Общие стили для ListView и TableView */
+.list-view, .table-view {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #ccc;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+    -fx-padding: 5;
+}
+
+/* Стили заголовков для TableView */
+.table-view .column-header {
+    -fx-background-color: linear-gradient(#4d4d4d, #e1d0d0);
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 10 5 10;
+    -fx-alignment: center-left;
+}
+
+/* Стили ячеек TableView */
+.table-view .cell {
+    -fx-padding: 10px;
+    -fx-font-size: 13px;
+    -fx-border-color: transparent transparent #d3d3d3 transparent;
+}
+
+/* Настройка ListView для лучшего вида */
+.list-view .list-cell {
+    -fx-background-color: white;
+    -fx-text-fill: #333;
+    -fx-font-size: 14px;
+    -fx-padding: 10px;
+}
+
+.list-view .list-cell:filled:odd {
+    -fx-background-color: #f8f8f8;
+}
+
+.list-view .list-cell:filled:selected, .list-view .list-cell:filled:selected:hover {
+    -fx-background-color: #039ed3;
+    -fx-text-fill: white;
+}
+
+/* Эффект при наведении курсора н

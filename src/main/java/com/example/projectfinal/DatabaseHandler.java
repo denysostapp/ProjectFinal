@@ -1,2 +1,4 @@
-package com.example.projectfinal;public class DatabaseHandler {
+package com.example.projectfinal;
+
+public class DatabaseHandler {
 }
