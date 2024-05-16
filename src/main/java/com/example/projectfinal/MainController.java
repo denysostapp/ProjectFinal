@@ -1,5 +1,6 @@
 package com.example.projectfinal;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -19,7 +20,10 @@ import java.io.File;
 
 public class MainController {
     private ListView<League> leaguesList = new ListView<>();
+    private ObservableList<League> leagues = FXCollections.observableArrayList();
     private ListView<Team> teamsList = new ListView<>();
+    private ListView<Player> playersList = new ListView<>();
+    private ObservableList<Player> playersData = FXCollections.observableArrayList();
     private TableView<Match> matchesTable;
     private TextField newLeagueName = new TextField();
     private TextField newTeamName = new TextField();
@@ -27,6 +31,8 @@ public class MainController {
     private String newTeamLogoPath;
     private TextField newTeamStadium = new TextField();
     private TextField newTeamCoach = new TextField();
+    private Player selectedPlayer;
+    private League league;
 
     private Button addLeagueButton = new Button("Add League");
     private Button addTeamButton = new Button("Add Team");
@@ -49,8 +55,32 @@ public class MainController {
         titleBox.setAlignment(Pos.CENTER_LEFT);
         titleBox.getChildren().addAll(imageView, title1);
 
+        TextField searchField = new TextField();
+        searchField.setPromptText("Enter team name to search:");
+        Button searchButton = new Button("Search Team");
+        searchButton.setOnAction(event -> {
+            String teamsearch = searchField.getText();
+            Team foundTeam = findTeamByName(teamsearch);
+            if (foundTeam != null) {
+                teamsList.getSelectionModel().select(foundTeam);
+                displayTeamDetails(foundTeam);
+            }else{
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("Team not found");
+                alert.setContentText("The team you are looking for does not exist in the database.");
+                alert.showAndWait();
+            }
+
+        });
+        HBox searchBox = new HBox(10, searchField, searchButton);
+        league = leaguesList.getSelectionModel().getSelectedItem();
+        selectedPlayer = playersList.getSelectionModel().getSelectedItem();
+
+
+
         // Конфигурация для верхней части
-        HBox topPanel = new HBox(10, newLeagueName, addLeagueButton);
+        HBox topPanel = new HBox(10, newLeagueName, addLeagueButton, searchBox);
         topPanel.setStyle("-fx-padding: 10;");
         VBox topContainer = new VBox(titleBox, topPanel);
         borderPane.setTop(topContainer);
@@ -114,8 +144,26 @@ public class MainController {
         Button addMatchButton = new Button("Add Match");
         addMatchButton.setOnAction(e ->showAddMatchDialog(team));
         setupMatcesTable();
+        ListView<Player> playersListView = new ListView<>();
+
+        Button addPlayerButton = new Button("Add Player");
+        addPlayerButton.setOnAction(e -> showAddPlayerDialog(team));
+        Button deleteButton = new Button("Delete Player");
+        deleteButton.setOnAction(e -> {
+            Player selectedPlayer = playersListView.getSelectionModel().getSelectedItem();
+            if (selectedPlayer != null) {
+                team.getPlayersData().remove(selectedPlayer);
+            }
+        });
+        HBox addAndDeleteButtons = new HBox(10, addPlayerButton, deleteButton);
+        Button transferPlayerButton = new Button("Transfer Player");
+        transferPlayerButton.setOnAction(e -> showTransferPlayerDialog(selectedPlayer, league));
+        teamDetails.getChildren().add(transferPlayerButton);
         matchesTable.setItems(FXCollections.observableArrayList(team.getMatches()));
-        teamDetails.getChildren().addAll(addMatchButton,matchesTable);
+
+        playersListView.setItems(team.getPlayersData());
+        teamDetails.getChildren().addAll(addMatchButton,matchesTable, addAndDeleteButtons);
+        teamDetails.getChildren().add(playersListView);
     }
     private void initializeLeagues() {
         League premierLeague = new League("Premier League");
@@ -247,5 +295,91 @@ public class MainController {
         team.addMatch(match);
         matchesTable.setItems(FXCollections.observableArrayList(team.getMatches()));
     }
+    private void addPlayerToTeam(Player player, Team team){
+        team.addPlayer(player);
+        playersList.setItems(FXCollections.observableArrayList(team.getPlayersData()));
+    }
+    public void showAddPlayerDialog(Team team) {
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Add New Player");
+
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Enter player's name");
+        TextField ageField = new TextField();
+        ageField.setPromptText("Enter player's age");
+        TextField positionField = new TextField();
+        positionField.setPromptText("Enter player's position");
+        TextField priceField = new TextField();
+        priceField.setPromptText("Enter player's price in millions");
+
+        Button saveButton = new Button("Save Player");
+        saveButton.setOnAction(e -> {
+            String name = nameField.getText();
+            int age = Integer.parseInt(ageField.getText());
+            String position = positionField.getText();
+            double price = Double.parseDouble(priceField.getText());
+            Player player = new Player(name, age,position, price, team);
+            addPlayerToTeam(player, team);
+            dialogStage.close();
+        });
+
+        vbox.getChildren().addAll(
+                new Label("Name"), nameField,
+                new Label("Age"), ageField,
+                new Label("Price (in millions €)"), priceField,
+                saveButton
+        );
+
+        Scene scene = new Scene(vbox, 400, 400);
+        dialogStage.setScene(scene);
+        dialogStage.showAndWait();
+    }
+    public Team findTeamByName(String name) {
+        for (League league : leaguesList.getItems()) {  // Предполагается, что есть доступный список лиг
+            for (Team team : league.getTeams()) {
+                if (team.getName().equalsIgnoreCase(name)) {
+                    return team;
+                }
+            }
+        }
+        return null;
+    }
+    private void showTransferPlayerDialog(Player player, League league) {
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Transfer Player");
+
+        ComboBox<Team> teamComboBox = new ComboBox<>();
+        teamComboBox.setItems(FXCollections.observableArrayList(league.getTeams()));
+        teamComboBox.setPromptText("Select new team");
+
+        Button transferButton = new Button("Transfer");
+        transferButton.setOnAction(e -> {
+            Team newTeam = teamComboBox.getValue();
+            if (newTeam != null) {
+                transferPlayer(player, newTeam);
+                dialogStage.close();
+            }
+        });
+
+        VBox vbox = new VBox(10, new Label("Choose team for transfer:"), teamComboBox, transferButton);
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setPadding(new Insets(15));
+
+        Scene scene = new Scene(vbox);
+        dialogStage.setScene(scene);
+        dialogStage.showAndWait();
+    }
+    public void transferPlayer(Player player, Team newTeam) {
+        Team oldTeam = player.getTeam();
+        if (oldTeam != null && !oldTeam.equals(newTeam)) {
+            oldTeam.getPlayersData().remove(player);
+            newTeam.addPlayer(player);
+            player.setTeam(newTeam);
+        }
+    }
+
 }
 

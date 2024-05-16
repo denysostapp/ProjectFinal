@@ -50,4 +50,22 @@ public class Team {
     public ObservableList<Match> getMatches() {
         return matches;
     }
+    private ObservableList<Player> playersData = FXCollections.observableArrayList();
+    public void addPlayer(Player player) {
+        if (player.getTeam() != null) {
+            player.getTeam().removePlayer(player);
+        }
+        player.setTeam(this);
+        this.playersData.add(player);
+    }
+    public ObservableList<Player> getPlayersData() {
+        return playersData;
+    }
+
+    public void removePlayer(Player player) {
+        this.playersData.remove(player);
+        if (player.getTeam() == this) {
+            player.setTeam(null);
+        }
+    }
 }
